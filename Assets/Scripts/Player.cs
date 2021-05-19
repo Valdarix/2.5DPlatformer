@@ -9,12 +9,13 @@ public class Player : MonoBehaviour
 {
     private CharacterController _controller;
 
-    private Vector3 _playerVelocity;
-    private bool _groundedPlayer;
+    private Vector3 velocity;
+    [SerializeField] private bool _groundedPlayer;
     [SerializeField] private float playerSpeed  = 2.0f;
     [SerializeField] private float jumpHeight = 1.0f; 
     [SerializeField] private float gravityValue = -9.81f;
-    private bool _canDoubleJump;
+    [SerializeField] private bool _canDoubleJump;
+    private float _yV;
     
     // Start is called before the first frame update
     private void Start()
@@ -26,7 +27,6 @@ public class Player : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
     private void Update()
     {
         HandleMovement();
@@ -35,15 +35,14 @@ public class Player : MonoBehaviour
     private void HandleMovement()
     {
         _groundedPlayer = _controller.isGrounded;
-        if (_groundedPlayer && _playerVelocity.y < 0)
+        if (_groundedPlayer && velocity.y < 0)
         {
-            _playerVelocity.y = 0f;
-            _canDoubleJump = true;
+            velocity.y = 0;
         }
-        
-        var move = new Vector3(Input.GetAxis("Horizontal"), 0, 0);
-        _controller.Move(move * (Time.deltaTime * playerSpeed));
 
+        var move = new Vector3(Input.GetAxis("Horizontal"), 0, 0);
+        _controller.Move(move * Time.deltaTime * playerSpeed);
+        
         if (move != Vector3.zero)
         {
             gameObject.transform.forward = move;
@@ -51,17 +50,11 @@ public class Player : MonoBehaviour
 
         if (Input.GetButtonDown("Jump") && _groundedPlayer)
         {
-            _playerVelocity.y += Mathf.Sqrt(jumpHeight * -3.0f * gravityValue);
+            velocity.y = Mathf.Sqrt((jumpHeight * -3.0f * gravityValue));
         }
-        else if (Input.GetButtonDown("Jump") && _canDoubleJump)
-        {
-            _playerVelocity.y += Mathf.Sqrt(jumpHeight/2 * -3.0f * gravityValue);
-            _canDoubleJump = false;
-        }
+        
+        velocity.y += gravityValue * Time.deltaTime;
+        _controller.Move(velocity * Time.deltaTime);
 
-        _playerVelocity.y += gravityValue * Time.deltaTime;
-        _controller.Move(_playerVelocity * Time.deltaTime);
     }
-
-   
 }
